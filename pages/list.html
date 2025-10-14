@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">(Лого) Название компании</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../style/style.css">
+  <script defer src="../js/modal.js"></script>
+  <script defer src="../js/script.js"></script>
+  <script defer src="../js/burger.js"></script>
+
+  <!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // те же ключи, что и на главной
+  const SUPABASE_URL = 'https://stiqjgpqfqmcpnmdqmhi.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0aXFqZ3BxZnFtY3BubWRxbWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjcwOTQsImV4cCI6MjA3MzI0MzA5NH0.fR8LOlrEVQmeYwW383TTrODr9RXm77bwtC7aYtOOWBw';
+  window.supabase = window.supabase || supabase; // защита от переопределения
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-50 font-sans">
+  <script src="data.js"></script>
+  <!-- <script src="filters.js"></script> -->
+  <!-- Header -->
+    <header class="bg-gray-100 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <!-- <div class="text-2xl font-bold text-blue-600">RE</div> -->
+                <a href="/" class="ml-2 text-xl font-semibold flex items-center hover:text-blue-600 transition">
+  <span class="mr-2">(Лого)</span>
+  <span>Название компании</span>
+</a>
+            </div>
+
+            <!-- мобильное меню -->
+             <nav id="mobileMenu" class="hidden fixed top-16 right-0 w-64 bg-white shadow-md py-4 px-6 space-y-4">
+                <a href="#" class="block text-gray-700 hover:text-blue-600">Недвижимость</a>
+                <a href="#" class="block text-gray-700 hover:text-blue-600">Услуги</a>
+                <a href="#" class="block text-gray-700 hover:text-blue-600">Компания</a>
+                <a href="#" class="block text-gray-700 hover:text-blue-600">Поддержка</a>
+                <a href="tel:+71231232827" class="block text-gray-700 hover:text-blue-600">+7 (123) 123‑28‑27</a>
+            </nav>
+
+
+            <div class="flex items-center space-x-4">
+                <button id="openModalBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition">
+                    Заказать звонок
+                </button>
+                <div class="hidden md:block">
+                    <a href="tel:+71231232827" class="text-gray-700 hover:text-blue-600">+7 (123) 123–28–27</a>
+                </div>
+
+                <!-- <button class="md:hidden text-gray-700">
+                    <i class="fas fa-bars text-xl"></i>
+                </button> -->
+                <button id="burger" class="text-gray-700 hamburger-menu flex flex-col gap-1 p-2 cursor-pointer">
+                    <span class="block w-5 h-0.5 bg-gray-700 transition-all duration-300"></span>
+                    <span class="block w-5 h-0.5 bg-gray-700 transition-all duration-300"></span>
+                    <span class="block w-5 h-0.5 bg-gray-700 transition-all duration-300"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+  
+
+  <main class="flex-grow container mx-auto px-4 py-8">
+    <!-- Breadcrumbs -->
+    <nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+      <ol class="inline-flex list-none p-0">
+        <li class="flex items-center">
+          <a href="../index.html" class="hover:text-gray-700">Главная</a>
+          <span class="mx-2">/</span>
+        </li>
+        <li class="flex items-center">
+          <span id="bc-list" class="text-gray-700">…</span>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Page title -->
+    <h1 id="page-title-heading" class="text-3xl font-bold mb-6"></h1>
+
+    <!-- Фильтры -->
+    <section class="container mx-auto mb-6">
+      <div class="flex flex-wrap gap-4">
+        <!-- Фильтр: Площадка -->
+        <div class="relative inline-block" data-filter-key="place">
+          <button
+            class="filter-toggle flex items-center gap-2 px-4 py-2
+           bg-gray-100 text-gray-700 hover:bg-indigo-600 hover:text-white transition
+           border border-gray-300 border-r-0 rounded-none"
+            data-placeholder="Площадка"> 
+            <span class="filter-label">Площадка</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <ul class="filter-options hidden absolute left-0 mt-2 bg-white rounded-lg shadow-lg py-2 w-full z-50">
+            
+          </ul>
+        </div>
+
+        <!-- Фильтр: Назначение -->
+        <div class="relative inline-block" data-filter-key="purpose">
+          <button
+            class="filter-toggle flex items-center gap-2 px-4 py-2
+           bg-gray-100 text-gray-700 hover:bg-indigo-600 hover:text-white transition
+           border border-gray-300 border-r-0 rounded-none"
+            data-placeholder="Назначение">
+            <span class="filter-label">Назначение</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <ul class="filter-options hidden absolute left-0 mt-2 bg-white rounded-lg shadow-lg py-2 w-full z-50">
+          </ul>
+        </div>
+
+        <!-- Фильтр: Площадь от -->
+        <div class="relative inline-block" data-filter-key="minArea">
+          <button class="filter-toggle flex items-center gap-2 px-4 py-2
+           bg-gray-100 text-gray-700 hover:bg-indigo-600 hover:text-white transition
+           border border-gray-300 border-r-0 rounded-none">
+            <span class="filter-label"></span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <ul class="filter-options absolute left-0 mt-2 bg-white shadow rounded py-2 w-full z-50"></ul>
+        </div>
+
+        <!-- Фильтр: Площадь до -->
+        <div class="relative inline-block" data-filter-key="maxArea">
+          <button class="filter-toggle flex items-center gap-2 px-4 py-2
+           bg-gray-100 text-gray-700 hover:bg-indigo-600 hover:text-white transition
+           border border-gray-300 border-r-0 rounded-none">
+            <span class="filter-label"></span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <ul class="filter-options absolute left-0 mt-2 bg-white shadow rounded py-2 w-full z-50"></ul>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <style>
+      .filter-options {
+        display: none;
+      }
+
+      .filter-options.show {
+        display: block;
+      }
+
+      .filter-label--dynamic {
+        font-style: italic;
+      }
+    </style>
+
+    <section class="mb-6"></section>
+<h2 class="text-xl font-semibold mb-2">Карта выбранной площадки</h2>
+<div style="position:relative;">
+<div id="placeMap" class="w-full h-[420px] rounded-lg shadow mb-6"></div>
+<div id="map-legend"
+     style="position:absolute; bottom:20px; left:20px; background:white; 
+            padding:10px 14px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.15);
+            font-size:14px; line-height:1.4; z-index:1000;">
+  <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+    <span style="display:inline-block; width:16px; height:16px; background:#FF0000; border:1px solid #900;"></span>
+    <span>Занято</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+    <span style="display:inline-block; width:16px; height:16px; background:#0000FF; border:1px solid #004;"></span>
+    <span>Свободно</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:6px;">
+    <span style="display:inline-block; width:16px; height:2px; border-top:2px dashed #4F46E5;"></span>
+    <span>Земля</span>
+  </div>
+</div>
+</div>
+
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"></script>
+</section>
+
+    <!-- Listings grid -->
+    <div id="listings" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto bg-gray-900 text-gray-300 pt-16 pb-8">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <!-- Column 1 -->
+        <div>
+          <div class="flex items-center mb-4">
+            <!-- <div class="text-2xl font-bold text-white">RE</div> -->
+            <div class="ml-2 text-xl font-semibold text-white">(Лого) Название компании</div>
+          </div>
+          <p class="mb-4">
+            Ведущая компания по аренде недвижимости в Санкт-Петербурге
+          </p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-telegram"></i></a>
+            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-vk"></i></a>
+          </div>
+        </div>
+
+        <!-- Column 2 -->
+        <div>
+          <h3 class="text-white text-lg font-semibold mb-4">Недвижимость</h3>
+          <ul class="space-y-2">
+            <!-- <li><a href="#" class="hover:text-white">Квартиры</a></li> -->
+            <!-- <li><a href="#" class="hover:text-white">Дома</a></li> -->
+            <li><a href="#" class="hover:text-white">Офисы</a></li>
+            <li><a href="#" class="hover:text-white">Коммерческая недвижимость</a></li>
+            <!-- <li><a href="#" class="hover:text-white">Новостройки</a></li> -->
+          </ul>
+        </div>
+
+        <!-- Column 3 -->
+        <div>
+          <h3 class="text-white text-lg font-semibold mb-4">Услуги</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="hover:text-white">Аренда жилья</a></li>
+            <li><a href="#" class="hover:text-white">Аренда офисов</a></li>
+            <li><a href="#" class="hover:text-white">Юридические услуги</a></li>
+            <li><a href="#" class="hover:text-white">Оценка недвижимости</a></li>
+            <li><a href="#" class="hover:text-white">Консультации</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 4 -->
+        <div>
+          <h3 class="text-white text-lg font-semibold mb-4">Контакты</h3>
+          <ul class="space-y-2">
+            <li class="flex items-start">
+              <i class="fas fa-phone-alt mt-1 mr-2"></i>
+              <div>
+                <a href="tel:+71231232827" class="hover:text-white">+7 (123) 123–28–27</a>
+                <p class="text-sm text-gray-400">Ежедневно с 9:00 до 21:00</p>
+              </div>
+            </li>
+            <li class="flex items-center">
+              <i class="fas fa-envelope mr-2"></i>
+              <a href="mailto:info@(Лого) Название компании.ru" class="hover:text-white">info@(Лого) Название
+                компании.ru</a>
+            </li>
+            <li class="flex items-center">
+              <i class="fas fa-map-marker-alt mr-2"></i>
+              <span>Санкт-Петербург, Невский пр. 100</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <div class="mb-4 md:mb-0">
+          © 2024 (Лого) Название компании. Все права защищены.
+        </div>
+        <div class="flex space-x-4">
+          <a href="#" class="hover:text-white">Условия использования</a>
+          <a href="#" class="hover:text-white">Политика конфиденциальности</a>
+          <a href="#" class="hover:text-white">Карта сайта</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+<script>
+// 1. Маппинг названий назначения
+const labels = {
+  land:       'Земельные участки',
+  office:     'Офисные помещения',
+  warehouse:  'Складские помещения',
+  production: 'Производственные',
+  retail:     'Торговые площади'
+};
+
+// 2. Обновление хлебных крошек и заголовка
+function updateBreadcrumbAndHeading(purpose) {
+  const bc = document.getElementById('bc-list');
+  const h1 = document.getElementById('page-title-heading');
+  if (purpose && labels[purpose]) {
+    bc.textContent = labels[purpose];
+    h1.textContent = labels[purpose];
+    document.title = labels[purpose];
+  } else {
+    bc.textContent = 'Результаты поиска';
+    h1.textContent = 'Результаты поиска';
+    document.title = 'Результаты поиска';
+  }
+}
+
+// 3. Бургер-меню
+// const burger = document.querySelector('.hamburger-menu');
+// if (burger) {
+//   burger.addEventListener('click', () => {
+//     document.getElementById('mobileMenu').classList.toggle('hidden');
+//     burger.classList.toggle('active');
+//   });
+// }
+
+// 18. Слайдер автопрокрутка и кнопки
+function initEmptySlider() {
+  const slider = document.querySelector('.overflow-x-auto');
+  if (!slider) return;
+  const cards = slider.querySelectorAll('.w-64');
+  // Если карточек меньше 2 — убираем прокрутку
+  if (cards.length <= 1) {
+    slider.style.overflow = 'hidden';
+    return;
+  }
+
+  const cardWidth = cards[0].offsetWidth + 16; // +gap
+  let pos = 0;
+
+  // Автопрокрутка каждые 4 секунды
+  setInterval(() => {
+    pos = (pos + cardWidth >= slider.scrollWidth - slider.clientWidth)
+      ? 0
+      : pos + cardWidth;
+    slider.scrollTo({ left: pos, behavior: 'smooth' });
+  }, 4000);
+
+  // Кнопки «‹» и «›»
+  const nav = document.createElement('div');
+  nav.className = 'absolute top-1/2 left-0 right-0 flex justify-between items-center pointer-events-none';
+
+  const btnPrev = document.createElement('button');
+  btnPrev.innerHTML = '&#10094;'; // ‹
+  btnPrev.className = 'pointer-events-auto bg-white rounded-full p-2 shadow';
+
+  const btnNext = document.createElement('button');
+  btnNext.innerHTML = '&#10095;'; // ›
+  btnNext.className = 'pointer-events-auto bg-white rounded-full p-2 shadow';
+
+  nav.append(btnPrev, btnNext);
+  slider.parentElement.style.position = 'relative';
+  slider.parentElement.append(nav);
+
+  btnPrev.addEventListener('click', () => {
+    pos = Math.max(0, pos - cardWidth);
+    slider.scrollTo({ left: pos, behavior: 'smooth' });
+  });
+  btnNext.addEventListener('click', () => {
+    pos = Math.min(slider.scrollWidth - slider.clientWidth, pos + cardWidth);
+    slider.scrollTo({ left: pos, behavior: 'smooth' });
+  });
+}
+document.addEventListener('DOMContentLoaded', initEmptySlider);
+// document.addEventListener('DOMContentLoaded', () => initEmptySlider());
+// 4. Инициализация после загрузки DOM
+document.addEventListener('DOMContentLoaded', () => {
+  const url = new URL(window.location);
+  const filters = {
+    purpose: url.searchParams.get('purpose') || '',
+    place:   url.searchParams.get('place')   || '',
+    minArea: url.searchParams.get('minArea') || '',
+    maxArea: url.searchParams.get('maxArea') || ''
+  };
+  const suitableFilters = url.searchParams.getAll('suitableFor')
+    .map(decodeURIComponent)
+    .filter(Boolean);
+
+  // Обновляем заголовок и хлебные крошки
+  updateBreadcrumbAndHeading(filters.purpose);
+
+  // Собираем данные для отображения
+  const dataToShow = filters.purpose && dataByPurpose[filters.purpose]
+    ? dataByPurpose[filters.purpose]
+    : Object.values(dataByPurpose).flat();
+
+  // 5. Авто-диапазон площадей
+  const uniqueAreas = Array.from(new Set(
+    dataToShow.map(i => Number(i.area)).filter(n => !isNaN(n))
+  )).sort((a, b) => a - b);
+  if (!filters.minArea && uniqueAreas.length) {
+    filters.minArea = String(uniqueAreas[0]);
+    url.searchParams.set('minArea', filters.minArea);
+  }
+  if (!filters.maxArea && uniqueAreas.length) {
+    filters.maxArea = String(uniqueAreas[uniqueAreas.length - 1]);
+    url.searchParams.set('maxArea', filters.maxArea);
+  }
+  history.replaceState(null, '', url);
+
+  // 6. Генерация опций фильтров
+  generatePurposeOptions();
+  buildPlaceOptions();
+  buildAreaOptions('minArea');
+  buildAreaOptions('maxArea');
+
+  // 7. Установка лейблов
+  updateFilterButtonLabels(filters);
+
+  // 8. Рендер и навешивание обработчиков
+  renderListings(filters, suitableFilters);
+  attachFilterHandlers(filters, url, suitableFilters);
+});
+
+// 9. Опции назначения
+function generatePurposeOptions() {
+  const wrapper = document.querySelector('[data-filter-key="purpose"] .filter-options');
+  if (!wrapper) return;
+  wrapper.innerHTML = Object.keys(dataByPurpose)
+    .map(k => `<li><a href='#' data-value='${k}' class='block px-4 py-2 hover:bg-purple-100'>${labels[k]}</a></li>`)
+    .join('');
+}
+
+// 10. Опции площадок
+function buildPlaceOptions() {
+  const wrapper = document.querySelector('[data-filter-key="place"] .filter-options');
+  if (!wrapper) return;
+  const all = Object.values(dataByPurpose).flat();
+  const places = Array.from(new Set(all.map(i => i.place))).filter(Boolean);
+  wrapper.innerHTML = places
+    .map(p => `<li><a href='#' data-value='${p}' class='block px-4 py-2 hover:bg-purple-100'>${p}</a></li>`)
+    .join('');
+}
+
+// 11. Опции площадей
+function buildAreaOptions(filterKey) {
+  const wrapper = document.querySelector(`[data-filter-key='${filterKey}'] .filter-options`);
+  if (!wrapper) return;
+  const all = Object.values(dataByPurpose).flat();
+  const areas = Array.from(new Set(all.map(i => Number(i.area)).filter(n => !isNaN(n)))).sort((a,b)=>a-b);
+  wrapper.innerHTML = areas
+    .map(a => `<li><a href='#' data-value='${a}' class='block px-4 py-2 hover:bg-purple-100'>${a} м²</a></li>`)
+    .join('');
+}
+
+// 12. Лейблы кнопок
+function updateFilterButtonLabels(filters) {
+  ['place','purpose','minArea','maxArea'].forEach(key => {
+    const wrapper = document.querySelector(`[data-filter-key='${key}']`);
+    if (!wrapper) return;
+    const btn = wrapper.querySelector('.filter-toggle');
+    const lbl = btn.querySelector('.filter-label');
+    const val = filters[key];
+    if (val) {
+      let text;
+      if (key === 'purpose') text = labels[val];
+      else if (key === 'minArea') text = `Площадь от ${val} м²`;
+      else if (key === 'maxArea') text = `Площадь до ${val} м²`;
+      else text = val;
+      lbl.textContent = text;
+      btn.classList.add('bg-indigo-600','text-white');
+    } else {
+      lbl.textContent = key==='minArea' ? 'Площадь от' : key==='maxArea' ? 'Площадь до' : btn.dataset.placeholder;
+      btn.classList.remove('bg-indigo-600','text-white');
+    }
+  });
+}
+async function fetchListFromDB(filters) {
+  let q = sb
+    .from('objects_min_ui')
+    .select('id,name,place,area,purpose,images')   // доп. поля можно добавить по желанию
+    .order('area', { ascending: true });
+
+  if (filters.purpose) q = q.eq('purpose', filters.purpose);
+  if (filters.place)   q = q.eq('place',   filters.place);
+  if (filters.minArea) q = q.gte('area',   Number(filters.minArea));
+  if (filters.maxArea) q = q.lte('area',   Number(filters.maxArea));
+
+  const { data, error } = await q;
+  if (error) {
+    console.error('Supabase (list) error:', error);
+    return [];
+  }
+  return data || [];
+}
+
+// берём данные из БД
+async function renderListings(filters, suitableFilters) {
+  const container = document.getElementById('listings');
+
+  // 1) тянем список из Supabase (вместо dataByPurpose)
+  const list = await fetchListFromDB(filters);
+
+  // 2) (опционально) фильтр по suitableFilters, если он у тебя есть в БД отдельным полем
+  // Сейчас пропускаю, т.к. в objects_min_ui это поле может быть строкой.
+  // Если понадобится, добавим парсинг JSON.
+
+  // 3) если пусто — показываем «Похожее» как раньше
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="col-span-full w-full flex flex-col md:flex-row gap-6 p-6">
+        <div class="md:w-2/3 flex flex-col items-center text-center space-y-4">
+          <p class="text-2xl font-bold text-gray-800">По вашим критериям ничего не найдено</p>
+          <p class="text-gray-600">
+            Возможно, стоит расширить диапазон площадей или изменить область поиска.
+            А пока наш менеджер может помочь подобрать альтернативные варианты под ваши задачи.
+          </p>
+          <button id="contactManagerBtn"
+            class="inline-flex items-center bg-gradient-to-r from-purple-600 to-indigo-600 
+                   hover:from-purple-700 hover:to-indigo-700 text-white font-medium 
+                   px-8 py-3 rounded-full shadow-lg transition-transform 
+                   transform hover:-translate-y-0.5">
+            <i class="fas fa-headset mr-2"></i>
+            Получить помощь менеджера
+          </button>
+        </div>
+        <div class="md:w-1/3">
+          <h2 class="text-lg font-medium mb-4">Похожее</h2>
+          <div class="relative overflow-hidden">
+            <div class="inline-flex gap-4">
+              <!-- тут можно позже вставить «похожие» из базы -->
+            </div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // 4) обычная отрисовка карточек
+  container.innerHTML = list.map(item => {
+    const p = item.purpose || 'land';
+    const href = `detail.html?purpose=${encodeURIComponent(p)}&id=${item.id}`;
+    const img = Array.isArray(item.images) && item.images[0] ? item.images[0] : '';
+    const areaText = Number(item.area || 0).toLocaleString('ru-RU');
+
+    return `
+      <a href="${href}" class="block bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+        <img src="${img}"
+             alt="${item.name || ''}"
+             class="w-full h-32 object-cover"
+             onerror="this.src='https://placehold.co/400x200?text=Image+Not+Found'">
+        <div class="p-4">
+          <h3 class="font-semibold mb-1">${item.name || 'Объект'}</h3>
+          <p class="text-gray-600 text-sm mb-2">Площадь: ${areaText} м²</p>
+          ${item.place ? `<p class="text-gray-500 text-xs mb-2">${item.place}</p>` : ''}
+          <p class="text-blue-600 hover:text-blue-800 font-medium flex items-center">
+            Подробнее <i class="fas fa-arrow-right ml-2"></i>
+          </p>
+        </div>
+      </a>`;
+  }).join('');
+}
+
+
+
+// 14. Обновление опций площадей
+function updateAreaFilterOptions(filtered, filters) {
+  ['minArea','maxArea'].forEach(key => {
+    const menu = document.querySelector(`[data-filter-key='${key}'] .filter-options`);
+    if (!menu) return;
+    let vals = Array.from(new Set(filtered.map(i=>Number(i.area)).filter(n=>!isNaN(n)))).sort((a,b)=>a-b);
+    if (key==='minArea' && filters.maxArea) vals=vals.filter(a=>a<=Number(filters.maxArea));
+    if (key==='maxArea' && filters.minArea) vals=vals.filter(a=>a>=Number(filters.minArea));
+    menu.innerHTML = vals.map(a=>`<li><a href='#' data-value='${a}' class='block px-4 py-2 hover:bg-indigo-600 hover:text-white'>${a} м²</a></li>`).join('');
+  });
+}
+
+// 15. Обработчики фильтров
+function attachFilterHandlers(filters, url, suitableFilters) {
+  document.querySelectorAll('.relative[data-filter-key]').forEach(wrapper => {
+    const key  = wrapper.dataset.filterKey;
+    const btn  = wrapper.querySelector('.filter-toggle');
+    const menu = wrapper.querySelector('.filter-options');
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.filter-options.show').forEach(m => m.classList.remove('show'));
+      menu.classList.toggle('show');
+    });
+
+    menu.addEventListener('click', e => {
+      const opt = e.target.closest('a[data-value]');
+      if (!opt) return;
+      e.preventDefault();
+
+      const val = opt.dataset.value ?? '';
+      const isSame = (filters[key] ?? '') === val;
+      const isEmpty = val === '';
+
+      // Решаем: сбросить или установить
+      if (isSame || isEmpty) {
+        // СБРОС
+        delete filters[key];
+
+        // для purpose при сбросе лучше убрать зависимые границы
+        if (key === 'purpose') {
+          delete filters.minArea;
+          delete filters.maxArea;
+          updateBreadcrumbAndHeading(''); // вернёт "Результаты поиска"
+        }
+      } else {
+        // УСТАНОВИТЬ
+        filters[key] = val;
+
+        if (key === 'purpose') {
+          // если хочешь сразу подставлять новый диапазон — оставь блок ниже,
+          // иначе можно удалить и диапазон останется как есть.
+          const items = (window.dataByPurpose && window.dataByPurpose[val]) || [];
+          const areas = items.map(i => Number(i.area)).filter(n => !isNaN(n));
+          if (areas.length) {
+            filters.minArea = String(Math.min(...areas));
+            filters.maxArea = String(Math.max(...areas));
+          } else {
+            delete filters.minArea;
+            delete filters.maxArea;
+          }
+          updateBreadcrumbAndHeading(filters.purpose);
+          updateAreaFilterOptions(items, filters);
+        }
+      }
+
+      // Синхронизируем URL
+      ['purpose','place','minArea','maxArea'].forEach(k => {
+        if (filters[k]) url.searchParams.set(k, filters[k]);
+        else url.searchParams.delete(k);
+      });
+      history.pushState(null, '', url);
+
+      updateFilterButtonLabels(filters);
+      renderListings(filters, suitableFilters);
+
+      // Перерисовать карту по новым фильтрам
+      window.dispatchEvent(new CustomEvent('filters:changed'));
+
+      menu.classList.remove('show');
+    });
+  });
+
+  // Закрытие любого открытого меню по клику вне
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.filter-options.show').forEach(m => m.classList.remove('show'));
+  });
+}
+
+
+</script>
+
+
+    <!-- Modal -->
+    <div id="modal" class="modal fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-overlay absolute inset-0"></div>
+        <div class="modal-container bg-white w-full max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto">
+            <div class="modal-content py-4 px-6">
+                <div class="flex justify-between items-center pb-3">
+                    <h3 class="text-xl font-bold">Оставьте заявку</h3>
+                    <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                
+
+                <form id="contactForm" class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-gray-700 mb-1">Имя <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="name"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="phone" class="block text-gray-700 mb-1">Телефон <span
+                                class="text-red-500">*</span></label>
+                        <input type="tel" id="phone"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-gray-700 mb-1">Email</label>
+                        <input type="email" id="email"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="property-type" class="block text-gray-700 mb-1">Тип недвижимости</label>
+                        <select id="property-type"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Выберите тип</option>
+                            <option value="apartment">Квартира</option>
+                            <option value="house">Дом</option>
+                            <option value="office">Офис</option>
+                            <option value="commercial">Коммерческая</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="message" class="block text-gray-700 mb-1">Сообщение</label>
+                        <textarea id="message" rows="3"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+
+                    <div class="text-sm text-gray-500">
+                        <span class="text-red-500">*</span> Обязательные поля. Мы свяжемся с вами в течение 30 минут.
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition">
+                        Отправить заявку
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Object Modal -->
+<div id="objectModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/40"></div>
+
+  <div class="relative mx-auto mt-10 w-[92vw] max-w-2xl rounded-xl bg-white shadow-lg">
+    <div class="flex items-center justify-between px-5 py-4 border-b">
+      <h3 id="objModalTitle" class="text-xl font-semibold">Объект</h3>
+      <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closeObjectModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="p-5 space-y-4">
+      <div class="flex gap-4">
+        <img id="objModalImage" src="" alt="" class="w-32 h-32 object-cover rounded bg-gray-100">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span id="objModalBadge" class="px-2 py-0.5 text-xs rounded-full"></span>
+            <span id="objModalPurpose" class="text-xs text-gray-500"></span>
+          </div>
+          <div id="objModalMeta" class="text-sm text-gray-600"></div>
+          <div id="objModalAddress" class="text-sm text-gray-600"></div>
+        </div>
+      </div>
+
+      <div id="objModalDesc" class="text-sm text-gray-700"></div>
+    </div>
+
+    <div class="flex justify-between items-center px-5 py-4 border-t gap-3">
+  <button type="button" class="px-4 py-2 rounded-lg border hover:bg-gray-50"
+          onclick="closeObjectModal()">Закрыть</button>
+
+  <div class="flex items-center gap-2">
+    <a id="objModalMore"
+       href="#"
+       class="px-4 py-2 rounded-lg border text-blue-700 border-blue-200 hover:bg-blue-50">
+      Подробнее
+    </a>
+    <button type="button"
+            class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            onclick="openContactForCurrentObject()">Оставить заявку</button>
+  </div>
+</div>
+
+  </div>
+</div>
+
+
+<!-- опционально: сохраняем id объекта в скрытое поле формы -->
+<input type="hidden" id="objectId" name="objectId" value="">
+
+
+<script>
+(function () {
+  // --- GeoJSON -> Yandex polygons (supports Polygon/MultiPolygon/Feature/FeatureCollection)
+  function geojsonToYandexPolygons(geo) {
+    if (!geo) return [];
+    if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch { return []; } }
+    if (geo.type === 'Feature') geo = geo.geometry;
+    if (geo.type === 'FeatureCollection') geo = geo.features?.[0]?.geometry || null;
+    if (!geo) return [];
+    const toLatLon = ([lon, lat]) => [Number(lat), Number(lon)];
+
+    if (geo.type === 'Polygon') {
+      const rings = Array.isArray(geo.coordinates) ? geo.coordinates : [];
+      const contours = rings.map(ring => ring.map(toLatLon));
+      return contours.length ? [contours] : [];
+    }
+    if (geo.type === 'MultiPolygon') {
+      const polys = Array.isArray(geo.coordinates) ? geo.coordinates : [];
+      return polys.map(p => p.map(ring => ring.map(toLatLon))).filter(p => p.length);
+    }
+    return [];
+  }
+
+  // --- читаем фильтры из текущего URL
+  function readFiltersFromUrl() {
+    const url = new URL(location.href);
+    return {
+      place:   (url.searchParams.get('place') || '').trim(),
+      minArea: url.searchParams.get('minArea'),
+      maxArea: url.searchParams.get('maxArea')
+    };
+  }
+
+  // --- загрузка данных из вьюхи с учётом фильтров
+  async function fetchPlaceRows(place, minArea, maxArea) {
+    if (!place) return [];
+    let q = sb
+      .from('objects_min_ui')
+      .select('id,name,place,area,lat,lon,polygon,purpose,is_busy')
+      .eq('place', place);
+
+    if (minArea) q = q.gte('area', Number(minArea));
+    if (maxArea) q = q.lte('area', Number(maxArea));
+
+    const { data, error } = await q;
+    if (error) { console.error('Supabase error:', error); return []; }
+    return data || [];
+  }
+
+  // --- стиль полигона
+  function styleForRow(r) {
+    if (r.purpose === 'land') {
+      // Земля — только пунктирный контур
+      return {
+        fillColor: 'rgba(0,0,0,0)',
+        strokeColor: '#4F46E5',
+        strokeWidth: 2,
+        strokeStyle: 'dash'
+      };
+    }
+    // Помещения — занято (красный) / свободно (синий)
+    const isBusy = r.is_busy === true;
+    return {
+      fillColor:  isBusy ? '#FF000055' : '#0000FF55',
+      strokeColor:isBusy ? '#FF0000'   : '#0000FF',
+      strokeWidth: 3
+    };
+  }
+
+  let map;
+
+  // --- отрисовка карты по текущим фильтрам
+  async function renderMap() {
+    const { place, minArea, maxArea } = readFiltersFromUrl();
+    if (!map || !place) return;
+
+    map.geoObjects.removeAll();
+
+    const rows = await fetchPlaceRows(place, minArea, maxArea);
+    const rowsSorted = [...rows].sort((a, b) => Number(b.area || 0) - Number(a.area || 0)); // большие снизу
+
+    const addedPolygons = [];
+    for (const r of rowsSorted) {
+      const polys = geojsonToYandexPolygons(r.polygon);
+      if (!polys.length) continue;
+
+      polys.forEach(contours => {
+        const polygon = new ymaps.Polygon(contours, {
+          hintContent: (r.name || r.place || 'Объект') +
+            (r.purpose === 'land' ? ' (земля)' : (r.is_busy ? ' — Занято' : ' — Свободно'))
+        }, {
+          ...styleForRow(r),
+          zIndex:       100000 - Number(r.area || 0),
+          zIndexActive: 100001 - Number(r.area || 0)
+        });
+        map.geoObjects.add(polygon);
+        addedPolygons.push(polygon);
+        polygon.events.add('click', () => showObjectModal(r));
+      });
+    }
+
+    // fitBounds по полигонам
+    if (addedPolygons.length) {
+      const pts = [];
+      addedPolygons.forEach(p => {
+        const b = p.geometry.getBounds();
+        if (b && b.length === 2) pts.push(b[0], b[1]);
+      });
+      if (pts.length) {
+        const bounds = ymaps.util.bounds.fromPoints(pts);
+        map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 24 });
+        return;
+      }
+    }
+
+    // fallback: точки, если нет полигонов
+    const pts = rows
+      .filter(r => r.lat != null && r.lon != null)
+      .map(r => [Number(r.lat), Number(r.lon)]);
+    if (pts.length === 1) map.setCenter(pts[0], 14);
+    else if (pts.length > 1) map.setBounds(ymaps.util.bounds.fromPoints(pts), { checkZoomRange: true, zoomMargin: 24 });
+
+    console.log('rows for map:', rows.map(r => ({ id: r.id, area: r.area, hasPoly: !!r.polygon })));
+  }
+
+  // --- легенда поверх карты
+  function ensureLegend() {
+    const mapEl = document.getElementById('placeMap');
+    if (!mapEl) return;
+
+    // гарантируем relative у контейнера
+    const parent = mapEl.parentElement;
+    if (parent && getComputedStyle(parent).position === 'static') {
+      parent.style.position = 'relative';
+    }
+
+    if (document.getElementById('map-legend')) return; // уже есть
+
+    const legend = document.createElement('div');
+    legend.id = 'map-legend';
+    legend.style.position = 'absolute';
+    legend.style.bottom = '20px';
+    legend.style.left   = '20px';
+    legend.style.background = 'white';
+    legend.style.padding = '10px 14px';
+    legend.style.borderRadius = '8px';
+    legend.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
+    legend.style.fontSize = '14px';
+    legend.style.lineHeight = '1.4';
+    legend.style.zIndex = '1000';
+    legend.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:16px; height:16px; background:#FF0000; border:1px solid #900;"></span>
+        <span>Занято</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:16px; height:16px; background:#0000FF; border:1px solid #004;"></span>
+        <span>Свободно</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="display:inline-block; width:16px; height:2px; border-top:2px dashed #4F46E5;"></span>
+        <span>Земля</span>
+      </div>
+    `;
+    parent.appendChild(legend);
+  }
+
+  // --- инициализация
+  ymaps.ready(function () {
+    map = new ymaps.Map('placeMap', {
+      center: [59.93, 30.33],
+      zoom: 11,
+      controls: ['zoomControl']
+    }, { suppressMapOpenBlock: true });
+
+    ensureLegend();
+    renderMap(); // первичный рендер
+
+    // перерисовываем карту при изменении фильтров (UI вызывает это событие)
+    window.addEventListener('filters:changed', renderMap);
+    // и при навигации по истории (назад/вперёд)
+    window.addEventListener('popstate', renderMap);
+  });
+})();
+
+
+
+
+
+let _currentObjectForForm = null;
+
+function statusBadge({ purpose, is_busy }) {
+  if (purpose === 'land') {
+    return { text: 'Земельный участок', cls: 'bg-purple-100 text-purple-700' };
+  }
+  return is_busy
+    ? { text: 'Занято',   cls: 'bg-red-100 text-red-700' }
+    : { text: 'Свободно', cls: 'bg-blue-100 text-blue-700' };
+}
+
+function showObjectModal(obj) {
+  _currentObjectForForm = obj;
+
+  const img = Array.isArray(obj.images) && obj.images.length ? obj.images[0] : '';
+  const area = obj.area ? `${Number(obj.area).toLocaleString('ru-RU')} м²` : '';
+  const place = obj.place || '';
+  const addr = obj.address || '';
+  const badge = statusBadge(obj);
+
+  document.getElementById('objModalTitle').textContent = obj.name || 'Объект';
+  const imgEl = document.getElementById('objModalImage');
+  if (img) {
+    imgEl.src = img; imgEl.classList.remove('hidden');
+  } else {
+    imgEl.src = ''; imgEl.classList.add('hidden');
+  }
+
+  const b = document.getElementById('objModalBadge');
+  b.textContent = badge.text;
+  b.className = `px-2 py-0.5 text-xs rounded-full ${badge.cls}`;
+
+  document.getElementById('objModalPurpose').textContent =
+    obj.purpose === 'office' ? 'Офис' :
+    obj.purpose === 'retail' ? 'Торговая' :
+    obj.purpose === 'production' ? 'Производственная' :
+    obj.purpose === 'warehouse' ? 'Складская' : '';
+
+  document.getElementById('objModalMeta').textContent =
+    [area, place].filter(Boolean).join(' • ');
+
+  document.getElementById('objModalAddress').textContent = addr ? `Адрес: ${addr}` : '';
+
+  document.getElementById('objModalDesc').textContent = obj.hover_text || '';
+
+  const detailUrl = `detail.html?purpose=${encodeURIComponent(obj.purpose || 'land')}&id=${encodeURIComponent(obj.id)}`;
+  const moreEl = document.getElementById('objModalMore');
+  moreEl.href = detailUrl;
+  moreEl.target = '_self';
+  
+  document.getElementById('objectModal').classList.remove('hidden');
+}
+
+function closeObjectModal() {
+  document.getElementById('objectModal').classList.add('hidden');
+}
+
+// Открыть твою текущую форму с префиллом под выбранный объект
+function openContactForCurrentObject() {
+  if (!_currentObjectForForm) return;
+
+  // заполняем «формовую» модалку данными (используем твою прежнюю функцию если есть)
+  if (typeof renderObjectInModal === 'function') {
+    renderObjectInModal(_currentObjectForForm);
+  }
+  // и показываем именно форму
+  document.getElementById('modal')?.classList.remove('hidden');
+  // а карточную модалку закрываем
+  closeObjectModal();
+}
+
+</script>
+
+
+
+
+</body>
+
+</html>
+
+
+
+
+
+
