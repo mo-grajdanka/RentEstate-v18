@@ -33,7 +33,7 @@
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center">
 
-        <a href="/" class="ml-2 text-xl font-semibold flex items-center hover:text-blue-600 transition">
+        <a href="./" class="ml-2 text-xl font-semibold flex items-center hover:text-blue-600 transition">
           <span class="mr-2">(Лого)</span>
           <span>Название компании</span>
         </a>
@@ -502,6 +502,25 @@
 
 
           <script>
+const BASE = (() => {
+  const seg = location.pathname.split('/').filter(Boolean)[0] || '';
+  return location.hostname.endsWith('github.io') && seg ? '/' + seg : '';
+})();
+function buildDetailUrl(purpose, id) {
+  const url = new URL(BASE + '/pages/detail.html', location.origin);
+  url.searchParams.set('purpose', purpose);
+  url.searchParams.set('id', id);
+  return url.toString();
+}
+function buildListUrl(place) {
+  const url = new URL(BASE + '/pages/list.html', location.origin);
+  if (place) url.searchParams.set('place', place);
+  const f = window.filters || {};
+  if (f.minArea != null) url.searchParams.set('minArea', f.minArea);
+  if (f.maxArea != null) url.searchParams.set('maxArea', f.maxArea);
+  return url.toString();
+}
+
             document.addEventListener("DOMContentLoaded", () => {
               const ctaBtn = document.getElementById("serviceCta");
               const modal = document.getElementById("serviceFormModal");
@@ -702,7 +721,7 @@
 
           if (itemsAtPoint.length === 1) {
             const d = itemsAtPoint[0];
-            const detailUrl = `pages/detail.html?purpose=${encodeURIComponent(d._purpose)}&id=${d.id}`;
+            const detailUrl = buildDetailUrl(d._purpose, d.id);
             return `
         <div style="padding:15px;font-family:Arial,sans-serif;">
           <h3 style="margin:0 0 10px;color:#333;">${d.name}</h3>
@@ -714,7 +733,7 @@
         </div>`;
           }
 
-          const listUrl = `pages/list.html?place=${encodeURIComponent(place)}`;
+          const listUrl = buildListUrl(place);
           return `
       <div style="padding:15px;font-family:Arial,sans-serif;">
         <h3 style="margin:0 0 10px;color:#333;">${place}</h3>
@@ -1261,15 +1280,16 @@
       return [];
     }
 
-    function buildListUrlFromRow(row) {
-      const place = (row.place || '').trim();
-      const url = new URL(location.origin + '/pages/list.html');
-      if (place) url.searchParams.set('place', place);
-      // при желании сюда можно подмешать minArea/maxArea из фильтров:
-      // if (window.filters?.minArea) url.searchParams.set('minArea', window.filters.minArea);
-      // if (window.filters?.maxArea) url.searchParams.set('maxArea', window.filters.maxArea);
-      return url.toString();
-    }
+function buildListUrlFromRow(row) {
+  const place = (row.place || '').trim();
+  const url = new URL(BASE + '/pages/list.html', location.origin);
+  if (place) url.searchParams.set('place', place);
+  const f = window.filters || {};
+  if (f.minArea != null) url.searchParams.set('minArea', f.minArea);
+  if (f.maxArea != null) url.searchParams.set('maxArea', f.maxArea);
+  return url.toString();
+}
+
 
 
     async function initCards() {
