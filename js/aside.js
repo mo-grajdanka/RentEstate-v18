@@ -11,25 +11,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- ХЕЛПЕР ДЛЯ КАРТИНОК ----------
   const FALLBACK_IMG_SM = 'https://placehold.co/400x200?text=No+Image';
   const FALLBACK_IMG_LG = 'https://placehold.co/900x256?text=No+Image';
-  const BASE = 'https://mo-grajdanka.github.io/RentEstate-v15';
+  // const BASE = 'https://mo-grajdanka.github.io/RentEstate-v15';
+  const BASE = (() => {
+  const seg = location.pathname.split('/').filter(Boolean)[0] || '';
+  return location.hostname.endsWith('github.io') && seg ? '/' + seg : '';
+})();
 
-  function normalizeImg(url) {
-    if (!url) return null;
-    // абсолютные http(s) — оставляем
-    if (/^https?:\/\//i.test(url)) return url;
-    // начинаются с / — считаем от корня gh-pages
-    if (url.startsWith('/')) return `${BASE}${url}`;
-    // относительный ../img/... → в абсолютный
-    if (url.startsWith('../')) return `${BASE}/` + url.replace(/^\.\.\//, '');
-    // просто img/... → тоже в абсолютный
-    return `${BASE}/${url.replace(/^\.?\//, '')}`;
-  }
+function buildListUrl(place) {
+  const url = new URL(BASE + '/pages/list.html', location.origin);
+  if (place) url.searchParams.set('place', place);
+  const f = window.filters || {};
+  url.searchParams.set('minArea', f.minArea ?? 50);
+  url.searchParams.set('maxArea', f.maxArea ?? 80000);
+  return url.toString();
+}
+
+function normalizeImg(url) {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  // всегда собираем абсолютный URL относительно origin + BASE
+  return new URL(url.replace(/^\.?\//, ''), location.origin + BASE + '/').toString();
+}
 
   // ---------- РЕНДЕР КАРТОЧЕК ----------
   siteList.innerHTML = sitesData.slice(0, 4).map(site => {
     const imgRaw = site.images?.[0] || site.img || site.main_image || null;
     const img0 = normalizeImg(imgRaw);
-    const area = Number.isFinite(site.area) ? site.area.toLocaleString("ru-RU") : (site.area ?? "—");
+    const areaNum = Number(site.area);
+const area = Number.isFinite(areaNum)
+  ? areaNum.toLocaleString('ru-RU')
+  : (site.area ?? '—');
 
     // если нет картинки — сразу ставим fallback без onerror
     const imgTag = img0
@@ -83,7 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = overlay.querySelector("#sitePreviewClose");
 
   function fillPreview(site) {
-    const listUrl = `pages/list.html?place=${encodeURIComponent(site.place || "")}`;
+    // const listUrl = `pages/list.html?place=${encodeURIComponent(site.place || "")}`;
+    const listUrl = buildListUrl(site.place || '');
 
     // особый случай для "Площадка B"
     if (site.name === "Площадка B") {
