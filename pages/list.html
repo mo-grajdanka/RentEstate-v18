@@ -158,6 +158,17 @@
       .filter-label--dynamic {
         font-style: italic;
       }
+
+/* делаем серой только подложку (тайлы) */
+#placeMap [class*="ground-pane"] {
+  filter: grayscale(1) saturate(0) brightness(0.96) contrast(1.06) !important;
+}
+
+/* подписи/контролы оставляем цветными */
+#placeMap [class*="controls-pane"],
+#placeMap [class*="copyrights-pane"] {
+  filter: none !important;
+}
     </style>
 
     <section class="mb-6"></section>
@@ -169,11 +180,11 @@
             padding:10px 14px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.15);
             font-size:14px; line-height:1.4; z-index:1000;">
   <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-    <span style="display:inline-block; width:16px; height:16px; background:#FF0000; border:1px solid #900;"></span>
+    <span style="display:inline-block; width:16px; height:16px; background:#DC2626; border:1px solid #991B1B;"></span>
     <span>Занято</span>
   </div>
   <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-    <span style="display:inline-block; width:16px; height:16px; background:#0000FF; border:1px solid #004;"></span>
+    <span style="display:inline-block; width:16px; height:16px; background:#16A34A; border:1px solid #166534;"></span>
     <span>Свободно</span>
   </div>
   <div style="display:flex; align-items:center; gap:6px;">
@@ -459,7 +470,7 @@ function updateFilterButtonLabels(filters) {
 async function fetchListFromDB(filters) {
   let q = sb
     .from('objects_min_ui')
-    .select('id,name,place,area,purpose,images')   // доп. поля можно добавить по желанию
+     .select('id,name,place,address,area,purpose,is_busy,images,technical_characteristics,terms,hover_text,polygon,lat,lon')
     .order('area', { ascending: true });
 
   if (filters.purpose) q = q.eq('purpose', filters.purpose);
@@ -707,10 +718,13 @@ function attachFilterHandlers(filters, url, suitableFilters) {
 
 
 <!-- Object Modal -->
-<div id="objectModal" class="fixed inset-0 z-50 hidden">
-  <div class="absolute inset-0 bg-black/40"></div>
+<div id="objectModal" class="fixed inset-0 z-[1000] hidden" role="dialog" aria-modal="true" aria-labelledby="objModalTitle">
 
-  <div class="relative mx-auto mt-10 w-[92vw] max-w-2xl rounded-xl bg-white shadow-lg">
+  <!-- кликабельный оверлей для закрытия -->
+  <button id="objOverlay" type="button" class="absolute inset-0 bg-black/40"></button>
+
+  <!-- коробка модалки -->
+  <div class="modal-box relative mx-auto mt-10 w-[92vw] max-w-2xl rounded-xl bg-white shadow-lg">
     <div class="flex items-center justify-between px-5 py-4 border-b">
       <h3 id="objModalTitle" class="text-xl font-semibold">Объект</h3>
       <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closeObjectModal()">
@@ -732,26 +746,30 @@ function attachFilterHandlers(filters, url, suitableFilters) {
       </div>
 
       <div id="objModalDesc" class="text-sm text-gray-700"></div>
+
+      <!-- Технические характеристики -->
+      <section id="objModalTechWrap" class="hidden">
+        <h4 class="text-sm font-semibold text-gray-800">Технические характеристики</h4>
+        <div id="objModalTechList" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2"></div>
+      </section>
+
+      <!-- Условия аренды -->
+      <section id="objModalTermsWrap" class="hidden">
+        <h4 class="text-sm font-semibold text-gray-800">Условия</h4>
+        <div id="objModalTerms" class="mt-3 flex flex-wrap gap-2"></div>
+      </section>
     </div>
 
     <div class="flex justify-between items-center px-5 py-4 border-t gap-3">
-  <button type="button" class="px-4 py-2 rounded-lg border hover:bg-gray-50"
-          onclick="closeObjectModal()">Закрыть</button>
-
-  <div class="flex items-center gap-2">
-    <a id="objModalMore"
-       href="#"
-       class="px-4 py-2 rounded-lg border text-blue-700 border-blue-200 hover:bg-blue-50">
-      Подробнее
-    </a>
-    <button type="button"
-            class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-            onclick="openContactForCurrentObject()">Оставить заявку</button>
+      <button type="button" class="px-4 py-2 rounded-lg border hover:bg-gray-50" onclick="closeObjectModal()">Закрыть</button>
+      <div class="flex items-center gap-2">
+        <a id="objModalMore" href="#" class="px-4 py-2 rounded-lg border text-blue-700 border-blue-200 hover:bg-blue-50">Подробнее</a>
+        <button type="button" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700" onclick="openContactForCurrentObject()">Оставить заявку</button>
+      </div>
+    </div>
   </div>
 </div>
 
-  </div>
-</div>
 
 
 <!-- опционально: сохраняем id объекта в скрытое поле формы -->
@@ -796,7 +814,7 @@ function attachFilterHandlers(filters, url, suitableFilters) {
     if (!place) return [];
     let q = sb
       .from('objects_min_ui')
-      .select('id,name,place,area,lat,lon,polygon,purpose,is_busy')
+       .select('id,name,place,address,area,purpose,is_busy,images,technical_characteristics,terms,hover_text,polygon,lat,lon')
       .eq('place', place);
 
     if (minArea) q = q.gte('area', Number(minArea));
@@ -807,29 +825,25 @@ function attachFilterHandlers(filters, url, suitableFilters) {
     return data || [];
   }
 
-  // --- стиль полигона
-  function styleForRow(r) {
-    if (r.purpose === 'land') {
-      // Земля — только пунктирный контур
-      return {
-        fillColor: 'rgba(0,0,0,0)',
-        strokeColor: '#4F46E5',
-        strokeWidth: 2,
-        strokeStyle: 'dash'
-      };
-    }
-    // Помещения — занято (красный) / свободно (синий)
-    const isBusy = r.is_busy === true;
+function styleForRow(r) {
+  if (r.purpose === 'land') {
     return {
-      fillColor:  isBusy ? '#FF000055' : '#0000FF55',
-      strokeColor:isBusy ? '#FF0000'   : '#0000FF',
-      strokeWidth: 3
+      fillColor: '#000000', fillOpacity: 0,
+      strokeColor: '#000000', strokeOpacity: 0, strokeWidth: 0
     };
   }
+  const isBusy = r.is_busy === true;
+  return {
+    fillColor: isBusy ? '#DC2626' : '#16A34A',
+    fillOpacity: 0.35,
+    strokeColor: '#000000', strokeOpacity: 0, strokeWidth: 0
+  };
+}
+
+
 
   let map;
 
-  // --- отрисовка карты по текущим фильтрам
   async function renderMap() {
     const { place, minArea, maxArea } = readFiltersFromUrl();
     if (!map || !place) return;
@@ -839,27 +853,53 @@ function attachFilterHandlers(filters, url, suitableFilters) {
     const rows = await fetchPlaceRows(place, minArea, maxArea);
     const rowsSorted = [...rows].sort((a, b) => Number(b.area || 0) - Number(a.area || 0)); // большие снизу
 
-    const addedPolygons = [];
-    for (const r of rowsSorted) {
-      const polys = geojsonToYandexPolygons(r.polygon);
-      if (!polys.length) continue;
+const addedPolygons = [];
+for (const r of rowsSorted) {
+  const polys = geojsonToYandexPolygons(r.polygon);
+  if (!polys.length) continue;
 
-      polys.forEach(contours => {
-        const polygon = new ymaps.Polygon(contours, {
-          hintContent: (r.name || r.place || 'Объект') +
-            (r.purpose === 'land' ? ' (земля)' : (r.is_busy ? ' — Занято' : ' — Свободно'))
-        }, {
-          ...styleForRow(r),
-          zIndex:       100000 - Number(r.area || 0),
-          zIndexActive: 100001 - Number(r.area || 0)
-        });
-        map.geoObjects.add(polygon);
-        addedPolygons.push(polygon);
-        polygon.events.add('click', () => showObjectModal(r));
-      });
-    }
+  polys.forEach((contours) => {
+    const polygon = new ymaps.Polygon(
+      contours,
+      {
+        hintContent:
+          (r.name || r.place || 'Объект') +
+          (r.purpose === 'land' ? ' (земля)' : (r.is_busy ? ' — Занято' : ' — Свободно')),
+      },
+      {
 
-    // fitBounds по полигонам
+        ...styleForRow(r),
+        strokeColor: '#000000',
+        strokeOpacity: 0,
+        strokeWidth: 0,
+
+        zIndex: 100000 - Number(r.area || 0),
+        zIndexActive: 100001 - Number(r.area || 0),
+        cursor: 'pointer',
+      }
+    );
+
+    map.geoObjects.add(polygon);
+    addedPolygons.push(polygon);
+
+    const hoverStroke =
+      r.purpose === 'land'
+        ? { strokeColor: '#4F46E5', strokeOpacity: 1, strokeWidth: 2, strokeStyle: 'dash' }
+        : { strokeColor: (r.is_busy ? '#DC2626' : '#16A34A'), strokeOpacity: 1, strokeWidth: 3, strokeStyle: 'solid' };
+
+    polygon.events.add('mouseenter', () => {
+      polygon.options.set(hoverStroke);
+    });
+
+    polygon.events.add('mouseleave', () => {
+      polygon.options.set({ strokeOpacity: 0, strokeWidth: 0 });
+    });
+
+    polygon.events.add('click', () => showObjectModal(r));
+  });
+}
+
+
     if (addedPolygons.length) {
       const pts = [];
       addedPolygons.forEach(p => {
@@ -873,7 +913,6 @@ function attachFilterHandlers(filters, url, suitableFilters) {
       }
     }
 
-    // fallback: точки, если нет полигонов
     const pts = rows
       .filter(r => r.lat != null && r.lon != null)
       .map(r => [Number(r.lat), Number(r.lon)]);
@@ -883,18 +922,17 @@ function attachFilterHandlers(filters, url, suitableFilters) {
     console.log('rows for map:', rows.map(r => ({ id: r.id, area: r.area, hasPoly: !!r.polygon })));
   }
 
-  // --- легенда поверх карты
+
   function ensureLegend() {
     const mapEl = document.getElementById('placeMap');
     if (!mapEl) return;
 
-    // гарантируем relative у контейнера
     const parent = mapEl.parentElement;
     if (parent && getComputedStyle(parent).position === 'static') {
       parent.style.position = 'relative';
     }
 
-    if (document.getElementById('map-legend')) return; // уже есть
+    if (document.getElementById('map-legend')) return; 
 
     const legend = document.createElement('div');
     legend.id = 'map-legend';
@@ -955,7 +993,7 @@ function statusBadge({ purpose, is_busy }) {
   }
   return is_busy
     ? { text: 'Занято',   cls: 'bg-red-100 text-red-700' }
-    : { text: 'Свободно', cls: 'bg-blue-100 text-blue-700' };
+    : { text: 'Свободно', cls: 'bg-green-100 text-green-700' }; // было blue -> стало green
 }
 
 function showObjectModal(obj) {
@@ -996,13 +1034,97 @@ function showObjectModal(obj) {
   const moreEl = document.getElementById('objModalMore');
   moreEl.href = detailUrl;
   moreEl.target = '_self';
+
+  renderTechList(document.getElementById('objModalTechList'), obj.technical_characteristics);
+  renderChips(document.getElementById('objModalTerms'), obj.terms);
   
   document.getElementById('objectModal').classList.remove('hidden');
+
+  document.body.style.overflow = 'hidden';
+  window.addEventListener('keydown', onObjEsc);
+}
+
+// Универсальный рендер тех. характеристик
+// Поддерживает: ["электроснабжение", ...] ИЛИ [{label:"✔", value:"электроснабжение"}, ...]
+function renderTechList(container, tech) {
+  // контейнеры-обёртки (чтобы легко скрыть весь блок)
+  const wrap = document.getElementById('objModalTechWrap');
+  container.innerHTML = '';
+
+  if (!Array.isArray(tech) || tech.length === 0) {
+    wrap?.classList.add('hidden');
+    return;
+  }
+  wrap?.classList.remove('hidden');
+
+  const items = tech.map(t => {
+    if (t && typeof t === 'object' && 'value' in t) {
+      return { label: t.label ?? '✔', value: String(t.value || '') };
+    }
+    return { label: '✔', value: String(t || '') };
+  });
+
+  items.forEach(({ label, value }) => {
+    const row = document.createElement('div');
+    row.className = 'flex items-start gap-2';
+
+    // кружочек-иконка
+    const icon = document.createElement('span');
+    icon.className = 'mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 text-xs font-semibold';
+    icon.textContent = label;
+
+    const text = document.createElement('span');
+    text.className = 'text-sm text-gray-700';
+    text.textContent = value;
+
+    row.append(icon, text);
+    container.appendChild(row);
+  });
+}
+
+// Чипсы для условий (terms: jsonb-массив строк)
+function renderChips(container, terms) {
+  const wrap = document.getElementById('objModalTermsWrap');
+  container.innerHTML = '';
+
+  if (!Array.isArray(terms) || terms.length === 0) {
+    wrap?.classList.add('hidden');
+    return;
+  }
+  wrap?.classList.remove('hidden');
+
+  terms.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700';
+    chip.textContent = String(t);
+    container.appendChild(chip);
+  });
+}
+function openObjectModal() {
+  document.getElementById('objectModal')?.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  window.addEventListener('keydown', onObjEsc);
 }
 
 function closeObjectModal() {
-  document.getElementById('objectModal').classList.add('hidden');
+  document.getElementById('objectModal')?.classList.add('hidden');
+  document.body.style.overflow = '';
+  window.removeEventListener('keydown', onObjEsc);
 }
+
+function onObjEsc(e) {
+  if (e.key === 'Escape') closeObjectModal();
+}
+
+// закрытие по клику на затемнение
+document.getElementById('objOverlay')?.addEventListener('click', closeObjectModal);
+
+// если хочешь закрывать по клику «вне» окна (не только по overlay)
+document.getElementById('objectModal')?.addEventListener('click', (e) => {
+  const box = document.querySelector('#objectModal .modal-box');
+  if (box && !box.contains(e.target)) closeObjectModal();
+});
+
 
 // Открыть твою текущую форму с префиллом под выбранный объект
 function openContactForCurrentObject() {
@@ -1026,9 +1148,3 @@ function openContactForCurrentObject() {
 </body>
 
 </html>
-
-
-
-
-
-
