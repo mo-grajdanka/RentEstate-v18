@@ -78,9 +78,20 @@
         opacity: 1
       }
 
-      .map-box { overflow: hidden; }
-.map-box .map-img { transition: transform .25s ease; }
-.place-card:hover .map-box .map-img { transform: scale(1.2); }
+.map-box { overflow: hidden; }
+.map-box .map-img{
+  transition: transform .35s cubic-bezier(.2,.7,.2,1), opacity .2s ease;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+/* раньше 1.2 — поднимем до 1.38 */
+.place-card:hover .map-box .map-img { transform: scale(1.25); }
+
+@media (prefers-reduced-motion: reduce){
+  .map-box .map-img{ transition: none; }
+  .place-card:hover .map-box .map-img{ transform: none; }
+}
+
     </style>
 
     <section id="mapCards" class="gap-4 mb-6 bg-white">
@@ -1330,26 +1341,77 @@ const cards = Array.from(document.querySelectorAll('.place-card[data-id]'));
     img.src = url;
 const base = { lon: row.lon, lat: row.lat, plString: pl, z: 14, w, h };
 
-
-function setZoomed(zoomIn = true) {
-  if (zoomIn) {
-    const w2 = Math.min(w * 2, 1000);   
-    const h2 = Math.min(h * 2, 800);
-    const z2 = Math.min((base.z || 14) + 2, 18); // +2 зума (макс ~18)
-    img.src = staticMapUrl({ ...base, z: z2, w: w2, h: h2 });
-  } else {
-    img.src = staticMapUrl(base);
-  }
+// ---------- HI-RES OVERLAY С ПЛАВНЫМ КРОССФЕЙДОМ (очищенная версия) ----------
+function hiResUrl() {
+  const MAX_Z = 19;
+  const Z_DELTA = 2; 
+  const z2 = Math.min((base.z || 14) + Z_DELTA, MAX_Z);
+  return staticMapUrl({ ...base, z: z2, w: 650, h: 450 });
 }
 
-let hoverTimer;
+let preloadPromise = null;
+let overlay = null; 
+let hoverTimer = null;
+let isHovering = false;
+
+function preload(src) {
+  return new Promise((resolve, reject) => {
+    const t = new Image();
+    t.decoding = 'async';
+    t.onload = () => resolve(t);
+    t.onerror = reject;
+    t.referrerPolicy = 'no-referrer';
+    t.src = src;
+  });
+}
+
+function showHiRes() {
+  if (preloadPromise) return;
+  preloadPromise = preload(hiResUrl())
+    .then((hi) => {
+      if (!isHovering) return;
+      const box = card.querySelector('.map-box') || card;
+      overlay = document.createElement('img');
+      overlay.className = 'map-img absolute inset-0 w-full h-full object-cover';
+      overlay.style.opacity = '0';
+      overlay.style.pointerEvents = 'none';
+      overlay.alt = img.alt || 'Карта';
+      overlay.referrerPolicy = 'no-referrer';
+      overlay.src = hi.src;
+      box.appendChild(overlay);
+
+      // плавный кроссфейд
+      requestAnimationFrame(() => {
+        overlay.style.transition = 'opacity .35s ease-out';
+        overlay.style.opacity = '1';
+      });
+    })
+    .catch(() => {})
+    .finally(() => { preloadPromise = null; });
+}
+
+function hideHiRes() {
+  if (!overlay) return;
+  overlay.style.opacity = '0';
+  overlay.addEventListener('transitionend', () => {
+    overlay && overlay.remove();
+    overlay = null;
+  }, { once: true });
+}
+
+// чутка задержим, чтобы не дёргалось при пролёте мыши
 card.addEventListener('mouseenter', () => {
-  hoverTimer = setTimeout(() => setZoomed(true), 80);
+  isHovering = true; 
+  hoverTimer = setTimeout(showHiRes, 60);
 });
 card.addEventListener('mouseleave', () => {
+  isHovering = false;
   clearTimeout(hoverTimer);
-  setZoomed(false);
+  hideHiRes();
 });
+
+
+
 
     const titleEl = card.querySelector('h3');
     if (titleEl) titleEl.innerHTML = (row.place || row.name || '—').replace(/ /g, '<br>');
