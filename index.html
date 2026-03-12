@@ -11,7 +11,7 @@
   <script>
     const SUPABASE_URL = 'https://stiqjgpqfqmcpnmdqmhi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0aXFqZ3BxZnFtY3BubWRxbWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjcwOTQsImV4cCI6MjA3MzI0MzA5NH0.fR8LOlrEVQmeYwW383TTrODr9RXm77bwtC7aYtOOWBw';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   </script>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -595,7 +595,7 @@ function buildListUrl(place) {
     let servicesLoaded = false;
 
     async function loadServices() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('services')
         .select('slug, title, desc, form_hint, img, icon, sort, is_active')
         .eq('is_active', true)
@@ -1309,7 +1309,7 @@ const cards = Array.from(document.querySelectorAll('.place-card[data-id]'));
   const ids = [...new Set(cards.map(c => Number(c.dataset.id)).filter(Boolean))];
   if (!ids.length) return;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('objects_min')
     .select('id,name,place,lat,lon,polygon,suitable_for')
     .in('id', ids);
